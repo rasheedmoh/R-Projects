@@ -1,0 +1,300 @@
+---
+title: "Untitled"
+author: "SA'ADATU ADAMU"
+date: "2022-09-28"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r main_data}
+library(readxl)
+df <- read.csv("main_data.csv")
+```
+
+
+```{r pressure, echo=FALSE}
+head(df)
+```
+#Tail
+```{r}
+tail(df)
+```
+#dimension of data
+```{r}
+dim(df)
+```
+#data structure
+```{r}
+str(df)
+```
+```{r}
+summary(df)
+```
+```{r}
+attach(df)
+```
+
+```{r}
+failures.x <- table(failures.x)
+```
+
+```{r}
+library(likert)
+library(gt)
+library(gtsummary)
+
+```
+```{r}
+head(df)
+```
+#exploring data
+
+```{r}
+library(DataExplorer)
+```
+
+```{r}
+plot_intro(data = df, title = "Visual Representation of Missing Values") 
+```
+
+
+
+
+
+
+
+```{r}
+v1<-df%>%select(health.x,absences.x)
+v1[1:20]<-lapply(v1[1:2], factor,levels=c("Very Bad","Bad","Good","Very Good","Excellent"),ordered=TRUE)
+likert(v1)%>%
+  plot(type="bar")
+
+```
+
+```{r}
+v1<-df%>%select(health.x,failures.x)
+v1[1:2]<-lapply(v1[1:2], factor,levels=c("Very Bad","Bad","Good","Very Good","Excellent"),ordered=TRUE)
+likert(v1)%>%
+  plot(type="bar")
+```
+
+# age distribution of the data
+```{r}
+ag<-table(age)
+```
+
+```{r}
+barplot(ag)
+```
+
+
+```{r}
+df %>%
+  group_by(sex) %>%
+  tally(sort = T)
+```
+
+```{r}
+figure1 <- df %>% select(c(sex, failures.x))
+figure1 %>% 
+  pivot_longer(1:2, names_to = "question", values_to = "response") %>%
+  ggplot(aes(x = response)) +
+  geom_bar() +
+  facet_wrap(vars(question), ncol = 2) +
+  labs(x = "Responses", y = "Counts")
+```
+
+# Gender with the highest number of failures 
+```{r}
+df %>%
+  group_by(df$sex, df$failures.x)%>%
+  tally(sort = T)
+```
+# gender with most relationships
+```{r}
+df %>%
+  group_by(df$sex, df$studytime.x)%>%
+  tally(sort = T)
+```
+
+
+
+# how parent education affects the failure rates of the children
+```{r}
+df %>%
+  group_by(df$Medu,df$Fedu, df$famsup.x,df$failures.x)%>%
+  tally(sort = T)
+```
+
+# how family relationship affects the failure of students
+```{r}
+df %>%
+group_by(df$famrel.x,df$failures.x)%>%
+tally(sort = T)
+
+```
+
+#family size in relation to the kids taking extra lessons
+```{r}
+
+df %>%
+  group_by(df$famsize,df$paid.x)%>%
+  tally(sort = T)
+```
+
+# how the internet access affects the success of the students
+```{r}
+df %>%
+  group_by(df$failures.x,df$internet)%>%
+  tally(sort = T)
+
+```
+#Failure in response to the desire to go further with the studies
+```{r}
+df %>%
+  group_by(df$failures.x,df$higher.x)%>%
+  tally(sort = T)
+```
+# internet service in relation to the address of the students
+```{r}
+df %>%
+  group_by(df$addRuraless,df$internet)%>%
+  tally(sort = T)
+```
+
+# how their health status affects their absence from school
+```{r}
+df %>%
+  group_by(df$health.x,df$absences.x,df$failures.x)%>%
+  tally(sort = T)
+```
+
+```{r}
+ library(ggplot2)
+```
+#failures in relation to gender
+```{r}
+ggplot(df, aes(x= failures.x, fill= sex)) + geom_bar(position = "dodge")
+```
+#failure with respect to location
+```{r}
+ggplot(df, aes(x= failures.x, fill= addRuraless)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(df, aes(x= internet, fill= addRuraless)) + geom_bar(position = "stack")
+```
+```{r}
+library(treemapify)
+```
+```{r}
+
+install.packages("reshape2")
+install.packages("plyr")
+install.packages("devtools")
+```
+```{r}
+library(devtools)
+install_github("wilkox/treemapify")
+library(treemapify)
+```
+```{r}
+install.packages('treemapify')
+```
+```{r}
+library(ggplot2)
+```
+
+
+
+```{r}
+ggplot(df, aes(x= school, fill= failures.x)) + geom_bar(position = "stack")
+```
+```{r}
+ggplot(df, aes(x= failures.x, fill= PsTogetherApartTogetherus)) + geom_bar(position = "dodge") #failure with respect to parents living together or apart
+```
+```{r}
+ggplot(df, aes(x= failures.x, fill= guardian.x)) + geom_bar(position = "stack") #failure in relation to guardian
+```
+
+
+correlation between variables
+
+```{r}
+library(corrplot)
+```
+```{r}
+corrplot(df, method = "circle")
+```
+PREDICTIVE ANALYSIS
+```{r}
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+library(caret)
+set.seed(123)
+inTrain <- createDataPartition(y=df$failures.x, p=0.7, list=FALSE)
+```
+#partitioning data into testing and training
+```{r}
+training <- df[inTrain,]
+testing <- df[-inTrain,]
+```
+```{r}
+dummies <- dummyVars(failures.x ~ school+ sex + addRuraless + PsTogetherApartTogetherus + health.x + school 
+                     + df= training)
+dummy_tr <- as.data.frame(predict(dummies, training))
+dummy_tr$failures.x <- training$failures.x
+
+modFit <- train(failures.x ~ ., method="treebag", 
+                preProc = c("medianImpute"),    
+                na.action = na.pass,
+                data=dummy_tr)
+print(modFit)
+
+```
+
+
+# Predictive analysis using rpart
+```{r}
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+fit <- rpart(failures.x~., data = training, method = 'class')
+print(fit)
+rpart.plot(fit)
+
+predict_failures.x<-predict(fit, testing, type = 'class')
+print(predict_failures.x)
+
+table_mat <- table(testing$failures.x, predict_failures.x)
+table_mat
+
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+accuracy_Test
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
