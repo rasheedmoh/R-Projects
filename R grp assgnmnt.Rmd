@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "SA'ADATU ADAMU"
+title: "The Educational sector"
+author: "Adam Abdulrasheed"
 date: "2022-09-28"
 output: word_document
 ---
